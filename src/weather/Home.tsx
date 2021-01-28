@@ -1,8 +1,6 @@
-import { DocumentCard, Icon, Image, PrimaryButton } from '@fluentui/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon, Image, SearchBox, TextField } from '@fluentui/react';
 import axios from 'axios';
 import moment from 'moment';
-import imageUrl from '../assets/img/right-arrow.png'
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 
@@ -14,6 +12,10 @@ export const Weather = () => {
 
     const date = new Date();
     const btnClassName = "my-1 switch-options--btn";
+    const defaultWeatherObj: any = {};
+    const [selectedWeather, setWeatherObject] = useState(defaultWeatherObj);
+    const [isClick, setClick] = useState(0);
+    const [isInvalid, setInvalid] = useState(false);
     useEffect(() => {
         requestData();
         requestDailyData();
@@ -21,13 +23,13 @@ export const Weather = () => {
     const defaultData: any = {};
     const [dailyData, setDailyData] = useState(defaultData);
     const [weatherData, setWeatherData] = useState(defaultData);
-    const requestDailyData = () => {
+    const requestDailyData = (query?: string) => {
         let dailyDataURL = 'https://community-open-weather-map.p.rapidapi.com/forecast/daily';
         axios.request({
             method: 'GET',
             url: dailyDataURL,
             params: {
-                q: 'hanoi',
+                q: query ?? 'hanoi',
                 cnt: 16,
                 lat: '0',
                 lon: '0',
@@ -44,16 +46,16 @@ export const Weather = () => {
         }).then(function (response) {
             setDailyData(response.data);
         }).catch(function (error) {
-            console.error(error);
+            setInvalid(true);
         });
     }
-    const requestData = () => {
+    const requestData = (query?: string) => {
         let weatherURL = 'https://community-open-weather-map.p.rapidapi.com/weather';
         axios.request({
             method: 'GET',
             url: weatherURL,
             params: {
-                q: 'hanoi',
+                q: query ?? 'hanoi',
                 // cnt: 5,
                 lat: '0',
                 lon: '0',
@@ -70,18 +72,18 @@ export const Weather = () => {
         }).then(function (response) {
             setWeatherData(response.data);
         }).catch(function (error) {
-            console.error(error);
+            setInvalid(true);
         });
 
     }
 
 
     useEffect(() => {
-        if(dailyData){
-            setWeatherObject({...dailyData.list[0]});
+        if (dailyData.list) {
+            setWeatherObject({ ...dailyData.list[0] });
         }
         // setData(data);
-    }, [ dailyData])
+    }, [dailyData])
     const getCelsiusDegree = (kDegree: number) => {
         return Math.ceil(kDegree - 273.15) + "°";
     }
@@ -119,43 +121,36 @@ export const Weather = () => {
     const getImageUrl = (fileName: string) => {
         return `http://openweathermap.org/img/w/${fileName}.png`
     }
-    const defaultWeatherObj :any = {};
-    const [selectedWeather,setWeatherObject] = useState(defaultWeatherObj);
-    const [isClick,setClick] = useState(0);
-    // const [hasSelectedItem, setHasSelectedItem] = useState(0);
-    useEffect(()=>{
-        console.log('selectedWeather',selectedWeather);
-        
-    },[selectedWeather])
+
     const dailyList = () => {
-        return dailyData.list && dailyData.list.map((item: any,index : number) => {
+        return dailyData.list && dailyData.list.map((item: any, index: number) => {
             return (
                 <>
-                <div onClick= {()=>{
-                    setClick(index);
-                    setWeatherObject({...dailyData.list[index]})
-                }}  className={`daily-items  arrow-down  d-flex flex-column align-items-center ` + (isClick === index ?  'daily-items--active' : '') } >
-                    <span className="header h3">
-                        {getData(item.dt)}
-                    </span>
-                    <Image style={{ width: '44px' }} src={getImageUrl(item.weather[0].icon)}></Image>
-                    <div className="d-flex ">
-                        <span className=" max-celsius my-0 h1">
-                            {getCelsiusDegree(item.temp.max)}
+                    <div onClick={() => {
+                        setClick(index);
+                        setWeatherObject({ ...dailyData.list[index] })
+                    }} className={`daily-items  arrow-down  d-flex flex-column align-items-center ` + (isClick === index ? 'daily-items--active' : '')} >
+                        <span className="header h3">
+                            {getData(item.dt)}
                         </span>
-                        <span className="min-celsius  my-0 ml-4 h3 mt-auto">
-                            {getCelsiusDegree(item.temp.min)}
-                        </span>
+                        <Image style={{ width: '44px' }} src={getImageUrl(item.weather[0].icon)}></Image>
+                        <div className="d-flex ">
+                            <span className=" max-celsius my-0 h1">
+                                {getCelsiusDegree(item.temp.max)}
+                            </span>
+                            <span className="min-celsius  my-0 ml-4 h3 mt-auto">
+                                {getCelsiusDegree(item.temp.min)}
+                            </span>
+                        </div>
+                        <div className="d-flex justify-content-center w-100" >
+                            <span className="h4">
+                                {item.weather[0].main}
+                            </span>
+                        </div>
                     </div>
-                    <div className="d-flex justify-content-center w-100" >
-                        <span className="h4">
-                            {item.weather[0].main}
-                        </span>
+                    <div className="d-flex justify-content-center arrow-down-container">
+                        <div className="arrow-down"></div>
                     </div>
-                </div>
-                <div className="d-flex justify-content-center arrow-down-container">
-                    <div className="arrow-down"></div>
-                </div>
                 </>
             )
         })
@@ -172,7 +167,22 @@ export const Weather = () => {
     }
 
     return (weatherData &&
-        <>
+        <div className="container">
+            <SearchBox
+                placeholder='Type your city'
+                className='position-absolute searchbox-bar'
+                onSearch={(query) => {
+                    requestDailyData(query);
+                    requestData(query);
+                }}
+                onChange = {()=>{
+                    setInvalid(false);
+                }}
+
+            ></SearchBox>
+            <span className={isInvalid ? "pl-1 text-danger errorMessage position-absolute" : 'd-none'}>
+                Your city input is invalid
+            </span>
             <div className="weather-container">
             </div>
             <div className="weather-body d-flex align-items-center flex-column">
@@ -215,6 +225,6 @@ export const Weather = () => {
                 </div>
             </div>
 
-        </>
+        </div>
     )
 }

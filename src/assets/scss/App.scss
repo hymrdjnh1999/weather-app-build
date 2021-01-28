@@ -89,3 +89,22 @@
 		border-radius: 2px;
 	}
 }
+
+.searchbox-bar {
+	width: 300px;
+	z-index: 2 !important;
+	top: 10%;
+	div {
+		i {
+			color: blue;
+		}
+	}
+}
+
+.errorMessage {
+	top: calc(15% - 5px);
+	margin-left: 0.5px;
+	width: 298.5px;
+	z-index: 3;
+	background-color: white;
+}
