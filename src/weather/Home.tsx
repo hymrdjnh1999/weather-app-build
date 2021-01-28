@@ -6,6 +6,7 @@ import imageUrl from '../assets/img/right-arrow.png'
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 
+import Slider from "react-slick"
 interface State {
 
 }
@@ -118,26 +119,40 @@ export const Weather = () => {
     }
     const dailyList = () => {
         return dailyData.list && dailyData.list.map((item: any) => {
-            return (<div className="daily-items d-flex flex-column align-items-center" >
-                <span className="header">
-                    {getData(item.dt)}
-                </span>
-                <Image src={getImageUrl(item.weather[0].icon)}></Image>
-                <div className="d-flex">
-                    <span className=" max-celsius">
+            return (
+                <div className="daily-items d-flex flex-column align-items-center" >
+                    <span className="header h3">
+                        {getData(item.dt)}
                     </span>
-                    <span className="min-celsius ml-4">
-                        {getCelsiusDegree(item.temp.min)}
-                    </span>
+                    <Image style={{ width: '44px' }} src={getImageUrl(item.weather[0].icon)}></Image>
+                    <div className="d-flex ">
+                        <span className=" max-celsius my-0 h1">
+                            {getCelsiusDegree(item.temp.max)}
+                        </span>
+                        <span className="min-celsius  my-0 ml-4 h3 mt-auto">
+                            {getCelsiusDegree(item.temp.min)}
+                        </span>
+                    </div>
+                    <div className="d-flex justify-content-center w-100" >
+                        <span className="h4">
+                            {item.weather[0].main}
+                        </span>
+                    </div>
                 </div>
-                <div className="d-flex justify-content-center w-100" >
-                    <span className="">
-                        {item.weather[0].main}
-                    </span>
-                </div>
-            </div>)
+            )
         })
     }
+    function Arrow(props: any) {
+        let className = props.type === "next" ? "nextArrow" : "prevArrow";
+        className += " arrow";
+        const char = props.type === "next" ? "👉" : "👈";
+        return (
+            <span className={className} onClick={props.onClick} >
+                {char}
+            </span>
+        );
+    }
+
     return (weatherData &&
         <>
             <div className="weather-container">
@@ -167,15 +182,18 @@ export const Weather = () => {
                     <span className="h1 text-light flex-start  " style={{ fontSize: '26px', fontWeight: 'normal' }}>
                         Daily
                 </span>
-                    <div className="position-relative daily-list d-flex justify-content-center mt-5">
-                        <div className="arrow-icon" style={{ left: 0 }}>
-                            <Image src={imageUrl} alt="" />
-
-                        </div>
-                        {dailyList()}
-                        <div className="arrow-icon" style={{ right: 0 }}>
-                            <div className="arrow arrow--next"></div>
-                        </div>
+                    <div className="daily-list">
+                        <Slider
+                            
+                            dots={false} slidesToShow={7}
+                            slidesToScroll={1}
+                            infinite={false}
+                            nextArrow={<Arrow type="next" />}
+                            touchMove = {false}
+                            prevArrow={<Arrow type="prev" />}
+                        >
+                            {dailyList()}
+                        </Slider>
                     </div>
                 </div>
             </div>
