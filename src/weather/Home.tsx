@@ -74,12 +74,14 @@ export const Weather = () => {
         });
 
     }
-    useEffect(() => {
-        console.log('weatherData', weatherData);
-        console.log('dailyData', dailyData);
 
+
+    useEffect(() => {
+        if(dailyData){
+            setWeatherObject({...dailyData.list[0]});
+        }
         // setData(data);
-    }, [weatherData, dailyData])
+    }, [ dailyData])
     const getCelsiusDegree = (kDegree: number) => {
         return Math.ceil(kDegree - 273.15) + "°";
     }
@@ -117,10 +119,22 @@ export const Weather = () => {
     const getImageUrl = (fileName: string) => {
         return `http://openweathermap.org/img/w/${fileName}.png`
     }
+    const defaultWeatherObj :any = {};
+    const [selectedWeather,setWeatherObject] = useState(defaultWeatherObj);
+    const [isClick,setClick] = useState(0);
+    // const [hasSelectedItem, setHasSelectedItem] = useState(0);
+    useEffect(()=>{
+        console.log('selectedWeather',selectedWeather);
+        
+    },[selectedWeather])
     const dailyList = () => {
-        return dailyData.list && dailyData.list.map((item: any) => {
+        return dailyData.list && dailyData.list.map((item: any,index : number) => {
             return (
-                <div className="daily-items d-flex flex-column align-items-center" >
+                <>
+                <div onClick= {()=>{
+                    setClick(index);
+                    setWeatherObject({...dailyData.list[index]})
+                }}  className={`daily-items  arrow-down  d-flex flex-column align-items-center ` + (isClick === index ?  'daily-items--active' : '') } >
                     <span className="header h3">
                         {getData(item.dt)}
                     </span>
@@ -139,13 +153,17 @@ export const Weather = () => {
                         </span>
                     </div>
                 </div>
+                <div className="d-flex justify-content-center arrow-down-container">
+                    <div className="arrow-down"></div>
+                </div>
+                </>
             )
         })
     }
     function Arrow(props: any) {
         let className = props.type === "next" ? "nextArrow" : "prevArrow";
         className += " arrow";
-        const char = props.type === "next" ? "👉" : "👈";
+        const char = props.type === "next" ? ">" : "<";
         return (
             <span className={className} onClick={props.onClick} >
                 {char}
@@ -184,12 +202,11 @@ export const Weather = () => {
                 </span>
                     <div className="daily-list">
                         <Slider
-                            
                             dots={false} slidesToShow={7}
                             slidesToScroll={1}
                             infinite={false}
                             nextArrow={<Arrow type="next" />}
-                            touchMove = {false}
+                            touchMove={false}
                             prevArrow={<Arrow type="prev" />}
                         >
                             {dailyList()}
